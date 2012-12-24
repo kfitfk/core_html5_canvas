@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Dashed lines</title>
+</head>
+<body>
+<canvas id="canvas" width="640" height="400"></canvas>
+</body>
+<script type="text/javascript">
+var ctx = document.getElementById('canvas').getContext('2d');
+
+function drawDashedLine (ctx, x1, y1, x2, y2, dashLength) {
+	dashLength = dashLength === undefined ? 5 : dashLength;
+
+	var deltaX = x2 - x1,
+		deltaY = y2 - y1,
+		numDashes = Math.floor(Math.sqrt(deltaX * deltaX + deltaY * deltaY) / dashLength);
+	for(var i = 0; i < numDashes; ++i) {
+		ctx[i%2 === 0 ? 'moveTo' : 'lineTo'](x1 + (deltaX/numDashes) * i, y1 + (deltaY/numDashes) * i);
+	}
+
+	ctx.stroke();
+}
+
+ctx.lineWidth = 3;
+ctx.strokeStyle = 'blue';
+/*drawDashedLine(ctx, 20, 20, ctx.canvas.width-20, 20);
+drawDashedLine(ctx, ctx.canvas.width-20, 20, ctx.canvas.width-20, ctx.canvas.height-20, 10);
+drawDashedLine(ctx, ctx.canvas.width-20, ctx.canvas.height-20, 20, ctx.canvas.height-20, 20);
+drawDashedLine(ctx, 20, ctx.canvas.height-20, 20, 20, 2);*/
+// ctx.setLineDash(5);
+ctx.setLineDash([10, 5]);
+ctx.moveTo(20,20);
+ctx.lineTo(300,20);
+ctx.lineTo(300, 300);
+ctx.lineTo(20, 300);
+ctx.closePath();
+ctx.stroke();
+</script>
+</html>

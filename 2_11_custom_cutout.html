@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>2-11 Custom Cutout</title>
+</head>
+<body>
+<canvas id="canvas" width="950" height="630"></canvas>
+</body>
+<script type="text/javascript">
+var ctx = document.getElementById('canvas').getContext('2d');
+
+function rect(x, y, w, h, direction) {
+	if(direction) { // CCW
+		ctx.moveTo(x, y);
+		ctx.lineTo(x, y + h);
+		ctx.lineTo(x + w, y + h);
+		ctx.lineTo(x + w, y);
+	} else {
+		ctx.moveTo(x, y);
+		ctx.lineTo(x + w, y);
+		ctx.lineTo(x + w, y + h);
+		ctx.lineTo(x, y + h);
+	}
+	ctx.closePath();
+}
+
+function addOuterRectanglePath() {
+	ctx.rect(110, 25, 370, 335);
+}
+
+function addRectanglePath() {
+	rect(310, 55, 70, 35, true);
+}
+
+function addCriclePath() {
+	ctx.arc(300, 300, 40, 0, Math.PI*2, true);
+}
+
+function addTrianglePath() {
+	ctx.moveTo(400, 200);
+	ctx.lineTo(250, 115);
+	ctx.lineTo(200, 200);
+	ctx.closePath();
+}
+
+function strokeCutoutShapes() {
+	ctx.save();
+	ctx.strokeStyle = 'rgba(0, 0, 0, 0.7)';
+
+	ctx.beginPath();
+	addOuterRectanglePath(); // CW
+	ctx.stroke();
+
+	ctx.beginPath();
+	addCriclePath();
+	addRectanglePath();
+	addTrianglePath();
+	ctx.stroke();
+
+	ctx.restore();
+}
+
+function drawCutouts() {
+	ctx.beginPath();
+
+	addOuterRectanglePath(); // CW
+	addCriclePath(); // CCW
+	addRectanglePath(); // CCW
+	addTrianglePath(); // CCW
+
+	ctx.fill();
+}
+
+function draw() {
+	ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+	ctx.save();
+	ctx.shadowColor = 'rgba(200, 200, 0, 0.5)';
+	ctx.shadowOffsetX = 12;
+	ctx.shadowOffsetY = 12;
+	ctx.shadowBlur = 15;
+
+	drawCutouts();
+	ctx.restore();
+}
+
+ctx.fillStyle = 'goldenrod';
+draw();
+strokeCutoutShapes();
+</script>
+</html>

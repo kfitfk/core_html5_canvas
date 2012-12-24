@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>2-21 Drawing a dial</title>
+</head>
+<body>
+<canvas id="canvas" width="640" height="480"></canvas>
+</body>
+<script type="text/javascript">
+var cvs = document.getElementById('canvas'),
+    ctx = cvs.getContext('2d'),
+
+    CENTROID_RADIUS = 10,
+    CENTROID_STROKE_STYLE = 'rgba(0,0,0,0.5)',
+    CENTROID_FILL_STYLE = 'rgba(80,190,240,0.6)',
+
+    RING_INNER_RADIUS = 35,
+    RING_OUTER_RADIUS = 55,
+
+    ANNOTATIONS_FILL_STYLE = 'rgba(0,0,230,0.9)',
+    ANNOTATIONS_TEXT_SIZE = 12,
+
+    TICK_WIDTH = 10,
+    TICK_LONG_STROKE_STYLE = 'rgba(100,140,230,0.9)',
+    TICK_SHORT_STROKE_STYLE = 'rgba(100,140,230,0.7)',
+
+    TRACKING_DIAL_STROKING_STYLE = 'rgba(100,140,230,0.5)',
+
+    GUIDEWIRE_STROKE_STYLE = 'goldenrod',
+    GUIDEWIRE_FILL_STYLE = 'rgba(250,250,0,0.6)',
+
+    circle = {
+    	x : cvs.width / 2,
+    	y : cvs.height / 2,
+    	radius : 150
+    };
+
+function drawGrid(color, stepx, stepy)	{
+	ctx.save();
+	ctx.shadowColor = undefined;
+	ctx.shadowOffsetX = 0;
+	ctx.shadowOffsetY = 0;
+	ctx.shadowBlur = 0;
+	ctx.strokeStyle = color;
+	ctx.fillStyle = '#ffffff';
+	ctx.lineWidth = 0.5;
+	ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+	for(var i = stepx + 0.5; i < ctx.canvas.width; i += stepx) {
+		ctx.beginPath();
+		ctx.moveTo(i, 0);
+		ctx.lineTo(i, ctx.canvas.height);
+		ctx.stroke();
+	}
+
+	for(var i = stepy + 0.5; i < ctx.canvas.height; i += stepy) {
+		ctx.beginPath();
+		ctx.moveTo(0, i);
+		ctx.lineTo(ctx.canvas.width, i);
+		ctx.stroke();
+	}
+	ctx.restore();
+}
+
+function drawDial() {
+	var loc = { x : circle.x, y : circle.y };
+
+	drawCentroid();
+	drawCentroidGuidewire(loc);
+
+	drawRing();
+	drawTickInnerCircle();
+	drawTicks();
+	drawAnnotations();
+}
+
+function drawCentroid () {
+	ctx.beginPath();
+	ctx.save();
+	ctx.strokeStyle = CENTROID_STROKE_STYLE;
+	ctx.fillStyle = CENTROID_FILL_STYLE;
+	ctx.arc(circle.x, circle.y, CENTROID_RADIUS, 0, Math.PI*2, false);
+	ctx.stroke();
+	ctx.fill();
+	ctx.restore();
+}
+
+function drawCentroidGuidewire (loc) {
+	var angle = -Math.PI / 4,
+		radius, endpt;
+
+	radius = circle.radius + RING_OUTER_RADIUS;
+
+	if(loc.x >= circle.x) {
+		endpt = {
+			x : circle.x + radius * Math.cos(angle),
+			y : circle.y + radius * Math.sin(angle)
+		};
+	} else {
+		endpt = {
+			x : circle.x - radius * Math.cos(angle),
+			y : circle.y - radius * Math.sin(angle)
+		};
+	}
+
+	ctx.save();
+
+	ctx.strokeStyle = GUIDEWIRE_STROKE_STYLE;
+	ctx.fillStyle = GUIDEWIRE_FILL_STYLE;
+
+	ctx.beginPath();
+	ctx.moveTo(circle.x, circle.y);
+	ctx.lineTo(endpt.x, endpt.y);
+	ctx.stroke();
+
+	ctx.beginPath();
+	ctx.strokeStyle = TICK_LONG_STROKE_STYLE;
+	ctx.arc(endpt.x, endpt.y, 5, 0, Math.PI*2, false);
+	ctx.fill();
+	ctx.stroke();
+
+	ctx.restore();
+}
+
+function drawRing () {
+	drawRingOuterCircle();
+
+	ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+	ctx.arc(circle.x, circle.y, circle.radius + RING_INNER_RADIUS, 0, Math.PI*2, false);
+	ctx.fillStyle = 'rgba(100,140,230,0.1)';
+	ctx.fill();
+	ctx.stroke();
+}
+
+function drawRingOuterCircle () {
+	ctx.shadowColor = 'rgba(0,0,0,0.7)';
+	ctx.shadowOffsetX = 3;
+	ctx.shadowOffsetY = 3;
+	ctx.shadowBlur = 6;
+	ctx.strokeStyle = TRACKING_DIAL_STROKING_STYLE;
+	ctx.beginPath();
+	ctx.arc(circle.x, circle.y, circle.radius + RING_OUTER_RADIUS, 0, Math.PI*2, true);
+	ctx.stroke();
+}
+
+function drawTickInnerCircle () {
+	ctx.save();
+	ctx.beginPath();
+	ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+	ctx.arc(circle.x, circle.y, circle.radius + RING_INNER_RADIUS - TICK_WIDTH, 0, Math.PI*2, false);
+	ctx.stroke();
+	ctx.restore();
+}
+
+function drawTick (angle, radius, cnt) {
+	var tickWidth = cnt % 4 === 0 ? TICK_WIDTH : TICK_WIDTH/2;
+
+	ctx.beginPath();
+	ctx.moveTo(circle.x + Math.cos(angle)*(radius - tickWidth),
+		       circle.y + Math.sin(angle)*(radius - tickWidth));
+	ctx.lineTo(circle.x + Math.cos(angle)*(radius),
+		       circle.y + Math.sin(angle)*(radius));
+	ctx.strokeStyle = TICK_SHORT_STROKE_STYLE;
+	ctx.stroke();
+}
+
+function drawTicks () {
+	var radius = circle.radius + RING_INNER_RADIUS,
+		ANGLE_MAX = 2*Math.PI,
+		ANGLE_DELTA = Math.PI / 64,
+		tickWidth;
+
+	ctx.save();
+
+	for(var angle = 0, cnt = 0; angle < ANGLE_MAX; angle += ANGLE_DELTA) {
+		drawTick(angle, radius, cnt++);
+	}
+
+	ctx.restore();
+}
+
+function drawAnnotations () {
+	var radius = circle.radius + RING_INNER_RADIUS;
+
+	ctx.save();
+	ctx.fillStyle = ANNOTATIONS_FILL_STYLE;
+	ctx.font = ANNOTATIONS_TEXT_SIZE + 'px Helvetica';
+
+	for(var angle = 0; angle < 2*Math.PI; angle += Math.PI/8) {
+		ctx.beginPath();
+		ctx.fillText((angle * 180 / Math.PI).toFixed(0),
+			         circle.x + Math.cos(angle) * (radius - TICK_WIDTH*2),
+			         circle.y - Math.sin(angle) * (radius - TICK_WIDTH*2));
+	}
+	ctx.restore();
+}
+
+ctx.shadowColor = 'rgba(0,0,0,0.4)';
+ctx.shadowOffsetX = 2;
+ctx.shadowOffsetY = 2;
+ctx.shadowBlur = 4;
+
+ctx.textAlign = 'center';
+ctx.textBaseline = 'middle';
+
+drawGrid('lightgray', 10, 10);
+drawDial();
+</script>
+</html>

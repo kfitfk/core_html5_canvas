@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>2-9 Stroking and filling text, rectangles, and arcs</title>
+</head>
+<body>
+<canvas id="canvas" width="950" height="630"></canvas>
+</body>
+<script type="text/javascript">
+var ctx = document.getElementById('canvas').getContext('2d');
+
+// Drawing attributes
+ctx.font = '48px helvetica';
+ctx.strokeStyle = 'rgba(250, 200, 0, 1)';
+ctx.fillStyle = 'green';
+ctx.lineWidth = 2; // for text
+
+// Text
+ctx.strokeText('Stroke', 60, 100);
+ctx.fillText('Fill', 440, 110);
+ctx.strokeText('Stroke & Fill', 650, 110);
+ctx.fillText('Stroke & Fill', 650, 110);
+
+// Rectangles
+ctx.lineWidth = 5; // for shapes
+
+ctx.beginPath();
+ctx.rect(80, 150, 150, 100);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.rect(400, 150, 150, 100);
+ctx.fill();
+
+ctx.beginPath();
+ctx.rect(750, 150, 150, 100);
+ctx.stroke();
+ctx.fill();
+
+// Open arcs
+ctx.beginPath();
+ctx.arc(150, 370, 60, 0, Math.PI*3/2);
+ctx.stroke();
+
+ctx.beginPath();
+ctx.arc(475, 370, 60, 0, Math.PI*3/2);
+ctx.fill();
+
+ctx.beginPath();
+ctx.arc(820, 370, 60, 0, Math.PI*3/2);
+ctx.stroke();
+ctx.fill();
+
+// Closed arcs
+ctx.beginPath();
+ctx.arc(150, 550, 60, 0, Math.PI*3/2);
+ctx.closePath();
+ctx.stroke();
+
+ctx.beginPath();
+ctx.arc(475, 550, 60, 0, Math.PI*3/2);
+ctx.closePath();
+ctx.fill();
+
+ctx.beginPath();
+ctx.arc(820, 550, 60, 0, Math.PI*3/2);
+ctx.closePath();
+ctx.stroke();
+ctx.fill();
+</script>
+</html>

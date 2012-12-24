@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Rubberband Ploygons</title>
+    <style type="text/css">
+    body {
+    	background: #eee;
+    }
+    #controls {
+    	position: absolute;
+    	left: 25px;
+    	top: 25px;
+    }
+    #canvas {
+    	background: #fff;
+    	cursor: pointer;
+    	margin: 10px 0 0 10px;
+    	-webkit-box-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+    	-moz-box-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+    	box-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+    }
+    </style>
+</head>
+<body>
+<canvas id="canvas" width="800" height="540"></canvas>
+<div id="controls">
+	Stroke color: <select name="" id="strokeStyleSelect">
+		<option value="red">red</option>
+		<option value="green">green</option>
+		<option value="blue">blue</option>
+		<option value="orange">orange</option>
+		<option value="cornflowerblue">conflowerblue</option>
+		<option value="goldenrod">goldenrod</option>
+		<option value="navy">navy</option>
+		<option value="purple">purple</option>
+	</select>
+
+	Fill color: <select name="" id="fillStyleSelect">
+		<option value="red">red</option>
+		<option value="green">green</option>
+		<option value="blue">blue</option>
+		<option value="orange">orange</option>
+		<option value="cornflowerblue">conflowerblue</option>
+		<option value="goldenrod">goldenrod</option>
+		<option value="navy">navy</option>
+		<option value="purple">purple</option>
+	</select>
+
+	Sides: <select name="" id="sidesSelect">
+		<option value="3">3</option>
+		<option value="4">4</option>
+		<option value="5">5</option>
+		<option value="6">6</option>
+		<option value="7">7</option>
+		<option value="8">8</option>
+		<option value="9">9</option>
+		<option value="10">10</option>
+	</select>
+
+    Start Angle: <select name="" id="startAngleSelect">
+    	<option value="0">0</option>
+    	<option value="45">45</option>
+    	<option value="90">90</option>
+    	<option value="135">135</option>
+    	<option value="180">180</option>
+    </select>
+
+	Fill:
+	<input type="checkbox" id="fillCheckbox" checked="checked">
+
+	<input type="button" id="eraseAllButton" value="Erase All">
+</div>
+</body>
+<script type="text/javascript" src="shared/polygon.js"></script>
+<script type="text/javascript">
+var cvs = document.getElementById('canvas'),
+	ctx = cvs.getContext('2d'),
+	eraseAllButton = document.getElementById('eraseAllButton'),
+	strokeStyleSelect = document.getElementById('strokeStyleSelect'),
+	fillStyleSelect = document.getElementById('fillStyleSelect'),
+	sidesSelect = document.getElementById('sidesSelect'),
+	startAngleSelect = document.getElementById('startAngleSelect'),
+	fillCheckbox = document.getElementById('fillCheckbox'),
+
+	drawingSurfaceImageData,
+	mousedown = {},
+	rubberbandRect = {},
+	polygons = [],
+	dragging = false,
+
+	Point = function (x, y) {
+		this.x = x;
+		this.y = y;
+	};
+
+function drawGrid (ctx, color, stepx, stepy) {
+	ctx.save();
+	ctx.strokeStyle = color;
+	ctx.lineWidth = 0.5;
+
+	for(var i = stepx + 0.5; i < ctx.canvas.width; i += stepx) {
+		ctx.beginPath();
+		ctx.moveTo(i, 0);
+		ctx.lineTo(i, ctx.canvas.height);
+		ctx.stroke();
+	}
+
+	for(var i = stepy + 0.5; i < ctx.canvas.height; i += stepy) {
+		ctx.beginPath();
+		ctx.moveTo(0, i);
+		ctx.lineTo(ctx.canvas.width, i);
+		ctx.stroke();
+	}
+	ctx.restore();
+}
+
+function windowToCanvas (x, y) {
+	var bbox = cvs.getBoundingClientRect();
+	return {
+		x : x - bbox.left * (cvs.width / bbox.width),
+		y : y - bbox.top  * (cvs.height/ bbox.height)
+	}
+}
+
+// save and restore drawing surface
+function saveDrawingSurface () {
+	drawingSurfaceImageData = ctx.getImageData(0, 0, cvs.width, cvs.height);
+}
+
+function restoreDrawingSurface () {
+	ctx.putImageData(drawingSurfaceImageData, 0, 0);
+}
+
+// Rubber bands
+function updateRubberbandRectangle (loc) {
+	rubberbandRect.width = Math.abs(loc.x - mousedown.x);
+	rubberbandRect.height = Math.abs(loc.y - mousedown.y);
+
+	if(loc.x > mousedown.x) { rubberbandRect.left = mousedown.x; }
+	else { rubberbandRect.left = loc.x; }
+
+	if(loc.y > mousedown.y) { rubberbandRect.top = mousedown.y; }
+	else { rubberbandRect.top = loc.y; }
+}
+
+function drawRubberbandShape (loc) {
+	var polygon = new Polygon(mousedown.x, mousedown.y, rubberbandRect.width, parseInt(sidesSelect.value, 10), parseInt(startAngleSelect.value, 10) * Math.PI / 180, ctx.strokeStyle, ctx.fillStyle, fillCheckbox.checked);
+
+	ctx.beginPath();
+	polygon.createPath(ctx);
+	polygon.stroke(ctx);
+
+	if(fillCheckbox.checked) {
+		polygon.fill(ctx);
+	}
+
+	if(!dragging) {
+		polygons.push(polygon);
+	}
+}
+
+function updateRubberband (loc) {
+	updateRubberbandRectangle(loc);
+	drawRubberbandShape(loc);
+}
+
+// Guidewires
+function drawHorizontalLine(y) {
+	ctx.beginPath();
+	ctx.moveTo(0, y + 0.5);
+	ctx.lineTo(ctx.canvas.width, y + 0.5);
+	ctx.stroke();
+}
+
+function drawVerticalLine(x) {
+	ctx.beginPath();
+	ctx.moveTo(x + 0.5, 0);
+	ctx.lineTo(x + 0.5, ctx.canvas.height);
+	ctx.stroke();
+}
+
+function drawGuidewires (x, y) {
+	ctx.save();
+	ctx.strokeStyle = 'rgba(0, 0, 230, 0.4)';
+	ctx.lineWidth = 0.5;
+	drawVerticalLine(x);
+	drawHorizontalLine(y);
+	ctx.restore();
+}
+
+// Canvas event handlers
+cvs.onmousedown = function(e) {
+	var loc = windowToCanvas(e.clientX, e.clientY);
+
+	e.preventDefault();  // prevent cursor change
+	saveDrawingSurface();
+	mousedown.x = loc.x;
+	mousedown.y = loc.y;
+	dragging = true;
+}
+
+cvs.onmousemove = function(e) {
+	var loc;
+
+	if(dragging) {
+		e.preventDefault(); // Prevent selections
+
+		loc = windowToCanvas(e.clientX, e.clientY);
+		restoreDrawingSurface();
+		updateRubberband(loc);
+		drawGuidewires(loc.x, loc.y);
+	}
+}
+
+cvs.onmouseup = function(e) {
+	loc = windowToCanvas(e.clientX, e.clientY);
+	restoreDrawingSurface();
+	dragging = false;
+	updateRubberband(loc);
+}
+
+// Controls event handlers
+eraseAllButton.onclick = function(e) {
+	ctx.clearRect(0, 0, cvs.width, cvs.height);
+	drawGrid(ctx, 'lightgray', 10, 10);
+	saveDrawingSurface();
+}
+
+strokeStyleSelect.onchange = function(e) {
+	ctx.strokeStyle = strokeStyleSelect.value;
+}
+
+fillStyleSelect.onchange = function(e) {
+	ctx.fillStyle = fillStyleSelect.value;
+}
+
+// Initialization
+ctx.strokeStyle = strokeStyleSelect.value;
+ctx.fillStyle = fillStyleSelect.value;
+drawGrid(ctx, 'lightgray', 10, 10);
+</script>
+</html>
