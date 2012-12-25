@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Liner Gradients</title>
+</head>
+<body>
+<canvas id="canvas" width="300" height="150"></canvas>
+<script type="text/javascript">
+var cvs = document.getElementById('canvas'),
+    ctx = cvs.getContext('2d'),
+    gradient = ctx.createLinearGradient(0, 0, cvs.width, 0);
+
+gradient.addColorStop(0, 'blue');
+gradient.addColorStop(0.25, 'white');
+gradient.addColorStop(0.5, 'purple');
+gradient.addColorStop(0.75, 'red');
+gradient.addColorStop(1, 'yellow');
+
+ctx.fillStyle = gradient;
+ctx.fillRect(0, 0, cvs.width, cvs.height);
+</script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>2-23 Quadratic curve</title>
+</head>
+<body>
+<canvas id="canvas" width="400" height="400"></canvas>
+<script type="text/javascript">
+var cvs = document.getElementById('canvas'),
+    ctx = cvs.getContext('2d'),
+    ARROW_MARGIN = 30,
+    POINT_RADIUS = 7,
+    points = [
+        { x : cvs.width - ARROW_MARGIN,
+          y : cvs.height - ARROW_MARGIN },
+
+        { x : cvs.width - ARROW_MARGIN * 2,
+          y : cvs.height - ARROW_MARGIN },
+
+        { x : POINT_RADIUS,
+          y : cvs.height / 2 },
+
+        { x : ARROW_MARGIN,
+          y : cvs.height / 2 - ARROW_MARGIN },
+
+        { x : cvs.width - ARROW_MARGIN,
+          y : ARROW_MARGIN },
+
+        { x : cvs.width - ARROW_MARGIN,
+          y : ARROW_MARGIN * 2 }
+    ];
+
+function drawPoint (x, y, strokeStyle, fillStyle) {
+    ctx.beginPath();
+    ctx.fillStyle = fillStyle;
+    ctx.strokeStyle = strokeStyle;
+    ctx.lineWidth = 0.5;
+    ctx.arc(x, y, POINT_RADIUS, 0, Math.PI*2, false);
+    ctx.fill();
+    ctx.stroke();
+}
+
+function drawBezierPoints() {
+    var i, strokeStyle, fillStyle;
+    for(i = 0; i < points.length; ++i) {
+        fillStyle = i % 2 === 0 ? 'white' : 'blue';
+        strokeStyle = i % 2 === 0 ? 'blue' : 'white';
+        drawPoint(points[i].x, points[i].y, strokeStyle, fillStyle);
+    }
+}
+
+function drawArrow() {
+    ctx.strokeStyle = 'white';
+    ctx.fillStyle = 'cornflowerblue';
+
+    ctx.moveTo(cvs.width - ARROW_MARGIN, ARROW_MARGIN * 2);
+    ctx.lineTo(cvs.width - ARROW_MARGIN, cvs.height - ARROW_MARGIN * 2);
+
+    ctx.quadraticCurveTo(points[0].x, points[0].y, points[1].x, points[1].y);
+    ctx.lineTo(ARROW_MARGIN, cvs.height/2 + ARROW_MARGIN);
+
+    ctx.quadraticCurveTo(points[2].x, points[2].y, points[3].x, points[3].y);
+    ctx.lineTo(cvs.width - ARROW_MARGIN * 2, ARROW_MARGIN);
+
+    ctx.quadraticCurveTo(points[4].x, points[4].y, points[5].x, points[5].y);
+
+    ctx.stroke();
+    ctx.fill();
+}
+
+ctx.clearRect(0, 0, cvs.width, cvs.height);
+drawArrow();
+drawBezierPoints();
+</script>
+</body>
+</html>
