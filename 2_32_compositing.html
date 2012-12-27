@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+    <title>Compositing</title>
+    <style>
+     #canvas {
+        border: 1px solid cornflowerblue;
+        position: absolute;
+        left: 150px;
+        top: 10px;
+        background: #eeeeee;
+        border: thin solid #aaaaaa;
+        cursor: pointer;
+        -webkit-box-shadow: rgba(200, 200, 255, 0.9) 5px 5px 10px;
+        -moz-box-shadow: rgba(200, 200, 255, 0.9) 5px 5px 10px;
+        box-shadow: rgba(200, 200, 255, 0.9) 5px 5px 10px;
+     }
+    </style>
+</head>
+<body>
+<select id='compositingSelect' size='11'>
+    <option value='source-atop'>source-atop</option>
+    <option value='source-in'>source-in</option>
+    <option value='source-out'>source-out</option>
+    <option value='source-over'>source-over (default)</option>
+    <option value='destination-atop'>destination-atop</option>
+    <option value='destination-in'>destination-in</option>
+    <option value='destination-out'>destination-out</option>
+    <option value='destination-over'>destination-over</option>
+    <option value='lighter'>lighter</option>
+    <option value='copy'>copy</option>
+    <option value='xor'>xor</option>
+</select>
+
+<canvas id="canvas" width="640" height="420"></canvas>
+</body>
+<script type="text/javascript">
+var cvs = document.getElementById('canvas'),
+    ctx = cvs.getContext('2d'),
+    compositingSelect = document.getElementById('compositingSelect');
+
+function drawText () {
+    ctx.save();
+
+    ctx.shadowColor = 'rgba(100, 100, 150, 0.8)';
+    ctx.shadowOffsetX = 5;
+    ctx.shadowOffsetY = 5;
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = 'cornflowerblue';
+    ctx.strkeStyle = 'yellow';
+    ctx.fillText('HTML5', 20, 250);
+    ctx.strokeText('HTML5', 20, 250);
+
+    ctx.restore();
+}
+
+function windowToCanvas (cvs, x, y) {
+    var rect = cvs.getBoundingClientRect();
+    return {
+        x : x - rect.left * (cvs.width / rect.width),
+        y : y - rect.top * (cvs.height / rect.height)
+    };
+}
+
+ctx.canvas.onmousemove = function (e) {
+    var loc = windowToCanvas(cvs, e.clientX, e.clientY);
+    ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+    drawText();
+
+    ctx.save();
+    ctx.globalCompositeOperation = compositingSelect.value;
+    ctx.beginPath();
+    ctx.arc(loc.x, loc.y, 100, 0, 2*Math.PI, false);
+    ctx.fillStyle = 'orange'
+    ctx.fill();
+    ctx.restore();
+}
+
+compositingSelect.selectedIndex = 3;
+ctx.lineWidth = 0.5;
+ctx.font = '128pt Comic-sans';
+drawText();
+</script>
+</html>

@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+    <title>Transform</title>
+</head>
+<body>
+<canvas id="canvas" width="400" height="400"></canvas>
+<script type="text/javascript">
+var cvs = document.getElementById('canvas'),
+    ctx = cvs.getContext('2d');
+
+var angle = Math.PI / 4,
+    sin = Math.sin(angle),
+    cos = Math.cos(angle),
+    w = cvs.width,
+    h = cvs.height;
+
+ctx.save();
+ctx.fillStyle = 'pink';
+
+// ctx.scale(w, h);
+// ctx.translate(0.5, 0.25);
+// ctx.rotate(Math.PI / 4);
+
+// ctx.transform(w, 0, 0, h, 0, 0);
+// ctx.transform(1, 0, 0, 1, 0.5, 0.25);
+// ctx.transform(cos, sin, -sin, cos, 0, 0);
+
+ctx.transform(cos*w, sin*h, -sin*w, cos*h, 0.5*w, 0.25*h);
+
+ctx.rect(0, 0, 0.4, 0.4);
+ctx.fill();
+ctx.restore();
+
+ctx.beginPath();
+ctx.fillStyle = 'orange';
+ctx.transform(1, 0, 0.75, 1, 0, 0);
+ctx.rect(0, 0, 100, 100);
+ctx.fill();
+
+</script>
+</body>
+</html>
