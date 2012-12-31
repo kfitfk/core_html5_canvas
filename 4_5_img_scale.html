@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Scaling Image</title>
+</head>
+<body>
+<input type="range" id="rangeInput" min="1.0" max="3.0" step="0.01" value="1.0"><br>
+<canvas id="canvas" width="600" height="375"></canvas>
+</body>
+<script type="text/javascript">
+var ctx = document.getElementById('canvas').getContext('2d'),
+    rangeInput = document.getElementById('rangeInput'),
+    image = new Image(),
+    w = ctx.canvas.width,
+    h = ctx.canvas.height,
+    MIN_SCALE = 1.0,
+    MAX_SCALE = 3.0;
+image.src = 'images/monster_in_love.jpg';
+
+function drawScaledImage (scaleValue) {
+    ctx.drawImage(image, (1-scaleValue)*w/2, (1-scaleValue)*h/2, w*scaleValue, h*scaleValue);
+}
+
+function rangeInputChange (e) {
+    var scaleValue = parseFloat(e.target.value, 10);
+    if(scaleValue < MIN_SCALE) { scaleValue = MIN_SCALE; }
+    else if(scaleValue > MAX_SCALE) { scaleValue = MAX_SCALE; }
+    drawScaledImage(scaleValue);
+}
+
+image.onload = function(e) {
+    ctx.drawImage(e.target, 0, 0);
+    rangeInput.onchange = rangeInputChange;
+};
+</script>
+</html>
