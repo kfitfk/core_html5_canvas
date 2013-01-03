@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Filters</title>
+</head>
+<body>
+<select name="" id="filterSelect" size="4">
+    <option value="original" selected>Original Picture</option>
+    <option value="invert">Invert</option>
+    <option value="blackWhite">Black and White</option>
+    <option value="emboss">Emboss</option>
+</select>
+<br>
+<canvas id="canvas" width="600" height="375"></canvas>
+</body>
+<script type="text/javascript">
+var canvas = document.getElementById('canvas'),
+    context = canvas.getContext('2d'),
+
+    filterSelect = document.getElementById('filterSelect'),
+
+    image = new Image(),
+    imageDataOriginal = null,
+    imageDataInvert = null,
+    imageDataBlackWhite = null,
+    imageDataEmboss = null;
+
+function drawOriginal () {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+}
+
+function invert () {
+    var length = imageDataOriginal.data.length;
+
+    imageDataInvert = context.createImageData(canvas.width, canvas.height);
+
+    for(var i = 0; i < length; i += 4) {
+        imageDataInvert.data[i] = 255 - imageDataOriginal.data[i];
+        imageDataInvert.data[i+1] = 255 - imageDataOriginal.data[i+1];
+        imageDataInvert.data[i+2] = 255 - imageDataOriginal.data[i+2];
+        imageDataInvert.data[i+3] = imageDataOriginal.data[i+3];
+    }
+}
+
+function blackWhite () {
+    var length = imageDataOriginal.data.length,
+        average = 0;
+
+    imageDataBlackWhite = context.createImageData(canvas.width, canvas.height);
+
+    for(var i = 0; i < length; i += 4) {
+        average = (imageDataOriginal.data[i] +
+                   imageDataOriginal.data[i+1] +
+                   imageDataOriginal.data[i+2]) / 3;
+
+        imageDataBlackWhite.data[i] = average;
+        imageDataBlackWhite.data[i+1] = average;
+        imageDataBlackWhite.data[i+2] = average;
+        imageDataBlackWhite.data[i+3] = imageDataOriginal.data[i+3];
+    }
+}
+
+function emboss () {
+    var length = imageDataOriginal.data.length,
+        width = imageDataOriginal.width;
+
+    imageDataEmboss = context.createImageData(canvas.width, canvas.height);
+
+    for(var i = 0; i < length; i++) {
+        // not loop into the last row
+        if( i < length - width * 4) {
+            // not an alpha
+            if((i+1) % 4 !== 0) {
+                // last pixel in a row
+                // copy previous pixel's value to it
+                if((i+4) % (width*4) === 0) {
+                    imageDataEmboss.data[i] = imageDataOriginal.data[i-4];
+                    imageDataEmboss.data[i+1] = imageDataOriginal.data[i-3];
+                    imageDataEmboss.data[i+2] = imageDataOriginal.data[i-2];
+                    imageDataEmboss.data[i+3] = imageDataOriginal.data[i-1];
+                    i += 3;
+                } else {
+                    imageDataEmboss.data[i] = 255/2 +
+                                              2*imageDataOriginal.data[i] -
+                                              imageDataOriginal.data[i+4] - // next pixel
+                                              imageDataOriginal.data[i+width*4] // pixel underneath
+                }
+            } else {
+                imageDataEmboss.data[i] = imageDataOriginal.data[i];
+            }
+        } else {
+            // last row, no pixels underneath, so copy pixels above
+            if((i+1)%4 !== 0) {
+                imageDataEmboss.data[i] = imageDataEmboss.data[i-width*4];
+            } else {
+                imageDataEmboss.data[i] = imageDataOriginal.data[i];
+            }
+        }
+    }
+}
+
+function drawInvert () {
+    if(!imageDataInvert) { invert(); }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.putImageData(imageDataInvert, 0, 0);
+}
+
+function drawBlackWhite () {
+    if(!imageDataBlackWhite) { blackWhite(); }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.putImageData(imageDataBlackWhite, 0, 0);
+}
+
+function drawEmboss () {
+    if(!imageDataEmboss) { emboss(); }
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.putImageData(imageDataEmboss, 0, 0);
+}
+
+image.src = 'images/monster_in_love.jpg';
+image.onload = function() {
+    context.drawImage(image, 0, 0, canvas.width, canvas.height);
+    imageDataOriginal = context.getImageData(0, 0, canvas.width, canvas.height);
+}
+
+filterSelect.onchange = function(e) {
+    switch(e.currentTarget.value) {
+        case 'original':
+            drawOriginal();
+            break;
+        case 'invert':
+            drawInvert();
+            break;
+        case 'blackWhite':
+            drawBlackWhite();
+            break;
+        case 'emboss':
+            drawEmboss();
+            break;
+        default:
+            drawOriginal();
+            break;
+    }
+}
+</script>
+</html>

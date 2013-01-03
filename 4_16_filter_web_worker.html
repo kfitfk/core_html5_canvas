@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Filter Using Web Worker</title>
+</head>
+<body>
+<button id="sunglassButton">Sunglasses</button><br>
+<canvas id="canvas" width="600" height="375"></canvas>
+</body>
+<script type="text/javascript">
+var canvas = document.getElementById('canvas'),
+    context = canvas.getContext('2d'),
+
+    image = new Image(),
+
+    sunglassButton = document.getElementById('sunglassButton'),
+    sunglassOn = false,
+    sunglassFilter = new Worker('shared/sunglassFilter.js');
+
+function putSunglassesOn () {
+    sunglassFilter.postMessage(context.getImageData(0, 0, canvas.width, canvas.height));
+    sunglassFilter.onmessage = function(e) {
+        context.putImageData(event.data, 0, 0);
+    }
+}
+
+function drawOriginalImage() {
+    context.drawImage(image, 0, 0, image.width, image.height, 0, 0, canvas.width, canvas.height);
+}
+
+sunglassButton.onclick = function(e) {
+    if(sunglassOn) {
+        sunglassOn = false;
+        sunglassButton.value = 'Sunglasses';
+        drawOriginalImage();
+    } else {
+        sunglassOn = true;
+        sunglassButton.value = 'Original picture';
+        putSunglassesOn();
+    }
+};
+
+image.src = 'images/monster_in_love.jpg';
+image.onload = function() {
+    drawOriginalImage();
+};
+</script>
+</html>
